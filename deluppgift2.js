@@ -78,7 +78,6 @@ var shared = {
 //
 function main(context) {
     gl = context;
-
     window.addEventListener("keydown", keydown);
     window.addEventListener("keyup", keyup);
     gl.canvas.addEventListener("mousemove", mousemove);
@@ -129,6 +128,12 @@ function initializeScene() {
     shared.sunTexture      = loadTexture("sun.png");
     shared.sunFlareTexture = loadTexture("lensflare.png");
     shared.venusTexture    = loadTexture("venus.png");
+    shared.earthTexture    = loadTexture("earthDay.png");
+    shared.earthAtmosphereTexture = loadTexture("earthClouds.png");
+    shared.moonTexture     = loadTexture("moon.png");
+    shared.marsTexture     = loadTexture("mars.png");
+    shared.saturnTexture   = loadTexture("saturn.png");
+    shared.saturnRingsTexture = loadTexture("saturnRings.png");
 
     shared.lightIntensity = 1.0;
     shared.ambientColor   = vec4.fromValues(0.3, 0.3, 0.3, 1);
@@ -145,10 +150,10 @@ function keydown(event) {
             shared.paused = !shared.paused;
             break;
         case "ArrowUp":
-            shared.cameraDistanceDelta = -1;
+            shared.cameraDistanceDelta -= 0.001;
             break;
         case "ArrowDown":
-            shared.cameraDistanceDelta = 1;
+            shared.cameraDistanceDelta += 0.001;
             break;
         case 'q':
             shared.lightIntensity += 0.1;
@@ -265,14 +270,15 @@ function drawScene(time) {
     // worldMatrix == matris som transformerar positioner från objektrymd till
     //                världsrymd.
     //
+    
+
+
     var world = shared.worldMatrix;
     mat4.identity(world); // Nollställer världsmatrisen
 
     drawVenus(world, time);
-    //
-    // <-- Måla ut dina egna planeter här!
-    //
-
+    drawEarth(world, time);
+    drawMars(world, time);
     // Det är viktigt att solen målas ut sist. Anledningen är att denna funktion
     // gör förändringar i vymatrisen för att kunna måla ut solstrålarna platt på
     // skärmen. Om något annat målas ut efter detta så kommer alltså vymatrisen
@@ -311,9 +317,9 @@ function drawVenus(world, time) {
     // Matrisen skickas sedan till grafikkortet som använder den för att
     // transformera alla vertiser i modellen. Matrisen är alltid 4x4, oavsett
     // hur många transformationer vi lagrar ner.
-    mat4.rotateY(world, world, time / 4);
-    mat4.translate(world, world, vec3.fromValues(20, 0, 0));
-    mat4.rotateY(world, world, time);
+    mat4.rotateY(world, world, time / 4);   //omlopsshastighet
+    mat4.translate(world, world, vec3.fromValues(20, 0, 0));    //avstånd från origo
+    mat4.rotateY(world, world, time);   //rotationshastighet
     mat4.scale(world, world, vec3.fromValues(0.6, 0.6, 0.6));
 
     // Skicka matrisen och ljus-informationen till grafikkortet
@@ -341,11 +347,77 @@ function drawVenus(world, time) {
     popWorldMatrix();
 }
 
+function drawEarth(world, time)
+{
+    pushWorldMatrix();
+
+        mat4.rotateY(world, world, time / 5);
+        mat4.translate(world, world, vec3.fromValues(40, 0, 0));
+        mat4.rotateY(world, world, time);
+        mat4.scale(world, world, vec3.fromValues(0.7, 0.7, 0.7));
+
+        setTransformationAndLighting(true);
+
+        gl.bindTexture(gl.TEXTURE_2D, shared.earthTexture);
+
+        drawObject(shared.sphereObject);
+
+        pushWorldMatrix();
+
+            mat4.scale(world, world, vec3.fromValues(1.1, 1.1, 1.1));
+            mat4.rotateY(world, world, -time / 2);
+
+            setTransformationAndLighting(true);
+            gl.bindTexture(gl.TEXTURE_2D, shared.earthAtmosphereTexture);
+
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+            drawObject(shared.sphereObject);
+            gl.disable(gl.BLEND);
+
+        popWorldMatrix();
+        
+        pushWorldMatrix();
+        
+            mat4.rotateY(world, world, -time / 2);    
+            mat4.translate(world, world, vec3.fromValues(10, 0, 0));
+            mat4.scale(world, world, vec3.fromValues(0.4, 0.4, 0.4));
+
+            setTransformationAndLighting(true);
+            gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
+            drawObject(shared.sphereObject);
+
+        popWorldMatrix();
+
+    popWorldMatrix();        
+}
+
+function drawMars(world, time)
+{
+    pushWorldMatrix();
+
+        mat4.rotateY(world, world, time / 6);
+        mat4.translate(world, world, vec3.fromValues(60, 0, 0));
+        mat4.rotateY(world, world, time);
+        mat4.scale(world, world, vec3.fromValues(0.6, 0.6, 0.6));
+
+        setTransformationAndLighting(true);
+
+        gl.bindTexture(gl.TEXTURE_2D, shared.marsTexture);
+        drawObject(shared.sphereObject);
+
+        pushWorldMatrix();
+            
+            mat4.rotateY(world, world, -time / 2);
 
 
-//
-// Målar ut solen.
-//
+
+
+        popWorldMatrix();
+
+    popWorldMatrix();
+}
+
 function drawSun() {
     var world = shared.worldMatrix;
 
@@ -375,6 +447,7 @@ function drawSun() {
 //
 function pushWorldMatrix() {
     shared.worldMatrixStack.push(mat4.clone(shared.worldMatrix));
+
 }
 
 
