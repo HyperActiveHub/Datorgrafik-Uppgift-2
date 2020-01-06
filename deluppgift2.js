@@ -409,7 +409,7 @@ function drawMars(world, time)
         pushWorldMatrix();
             
             mat4.rotateY(world, world, -time / 2);
-
+            
 
 
 
