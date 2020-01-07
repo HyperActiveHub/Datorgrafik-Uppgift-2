@@ -104,7 +104,7 @@ function main(context) {
     gl.enableVertexAttribArray(shared.vertexNormalLocation);
 
     var aspectRatio = gl.drawingBufferWidth / gl.drawingBufferHeight;
-    mat4.perspective(shared.projectionMatrix, Math.PI/4, aspectRatio, 1, 200);
+    mat4.perspective(shared.projectionMatrix, Math.PI/4, aspectRatio, 1, 250);
 
     initializeScene();
 
@@ -132,6 +132,7 @@ function initializeScene() {
     shared.earthAtmosphereTexture = loadTexture("earthClouds.png");
     shared.moonTexture     = loadTexture("moon.png");
     shared.marsTexture     = loadTexture("mars.png");
+    shared.jupiterTexture = loadTexture("jupiter.png");
     shared.saturnTexture   = loadTexture("saturn.png");
     shared.saturnRingsTexture = loadTexture("saturnRings.png");
 
@@ -279,6 +280,8 @@ function drawScene(time) {
     drawVenus(world, time);
     drawEarth(world, time);
     drawMars(world, time);
+    drawJupiter(world, time);
+    drawSaturn(world, time);
     // Det är viktigt att solen målas ut sist. Anledningen är att denna funktion
     // gör förändringar i vymatrisen för att kunna måla ut solstrålarna platt på
     // skärmen. Om något annat målas ut efter detta så kommer alltså vymatrisen
@@ -408,15 +411,123 @@ function drawMars(world, time)
 
         pushWorldMatrix();
             
-            mat4.rotateY(world, world, -time / 2);
+            mat4.rotateY(world, world, -time / 3);    
+            mat4.translate(world, world, vec3.fromValues(10, 0, 0));
+            mat4.scale(world, world, vec3.fromValues(0.4, 0.4, 0.4));
+
+            setTransformationAndLighting(true);
+            gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
+            drawObject(shared.sphereObject);
+
+        popWorldMatrix();
+
+        pushWorldMatrix();
             
+            mat4.rotateY(world, world, -time / 2);    
+            mat4.translate(world, world, vec3.fromValues(15, 0, 0));
+            mat4.scale(world, world, vec3.fromValues(0.4, 0.4, 0.4));
+
+            setTransformationAndLighting(true);
+            gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
+            drawObject(shared.sphereObject);
+
+        popWorldMatrix();
 
 
+    popWorldMatrix();
+}
+
+function drawJupiter(world, time)
+{
+
+    pushWorldMatrix();
+    
+        mat4.rotateY(world, world, time / 7);
+        mat4.translate(world, world, vec3.fromValues(80, 0, 0));
+
+        pushWorldMatrix();
+
+            mat4.rotateY(world, world, time);
+            mat4.scale(world, world, vec3.fromValues(0.9, 0.9, 0.9));
+
+        popWorldMatrix();
+
+        setTransformationAndLighting(true);
+
+        gl.bindTexture(gl.TEXTURE_2D, shared.jupiterTexture);
+        drawObject(shared.sphereObject);
+
+        pushWorldMatrix();
+        
+            mat4.rotateY(world, world, time);
+            mat4.translate(world, world, vec3.fromValues(10, 0, 0));
+            mat4.scale(world, world, vec3.fromValues(0.2, 0.2, 0.2));
+
+            setTransformationAndLighting(true);
+            gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
+            drawObject(shared.sphereObject);
+
+        popWorldMatrix();
+
+        pushWorldMatrix();
+
+            mat4.rotateX(world, world, time);
+            mat4.translate(world, world, vec3.fromValues(0, 0, 10));
+            mat4.scale(world, world, vec3.fromValues(0.2, 0.2, 0.2));
+
+            setTransformationAndLighting(true);
+            gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
+            drawObject(shared.sphereObject);
+
+        popWorldMatrix();
+
+        pushWorldMatrix();
+
+            mat4.rotateZ(world, world, time);
+            mat4.translate(world, world, vec3.fromValues(10, 0, 0));
+            mat4.scale(world, world, vec3.fromValues(0.2, 0.2, 0.2));
+
+            setTransformationAndLighting(true);
+            gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
+            drawObject(shared.sphereObject);
 
         popWorldMatrix();
 
     popWorldMatrix();
 }
+
+function drawSaturn(world, time)
+{
+    pushWorldMatrix();
+
+        mat4.rotateY(world, world, time / 8);
+        mat4.translate(world, world, vec3.fromValues(110, 0, 0));
+        
+        pushWorldMatrix();
+
+            mat4.rotateY(world, world, time);
+            mat4.scale(world, world, vec3.fromValues(0.8, 0.6, 0.8));
+        
+        popWorldMatrix();
+
+
+        setTransformationAndLighting(true);
+
+        gl.bindTexture(gl.TEXTURE_2D, shared.saturnTexture);
+        drawObject(shared.sphereObject);
+
+        gl.bindTexture(gl.TEXTURE_2D, shared.saturnRingsTexture);
+
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND)
+        gl.disable(gl.CULL_FACE);
+        drawObject(shared.sunFlareObject);
+        gl.enable(gl.CULL_FACE);
+        gl.disable(gl.BLEND);
+
+    popWorldMatrix();
+}
+
 
 function drawSun() {
     var world = shared.worldMatrix;
@@ -428,7 +539,7 @@ function drawSun() {
     billboardTransformation(shared.billboardMatrix, shared.viewMatrix);
     mat4.translate(world, world, vec3.fromValues(0, 0, 5));
     mat4.rotateX(world, world, Math.PI / 2);
-    mat4.scale(world, world, vec3.fromValues(0.7, 0.7, 0.7));
+    mat4.scale(world, world, vec3.fromValues(1, 1, 1));
     mat4.multiply(world, shared.billboardMatrix, world);
 
     setTransformationAndLighting(false);
